@@ -1,24 +1,12 @@
 # RabbitMQ 异步削峰 Demo
 
-> 补 Java 岗「消息队列」短板的学习 demo，场景挂靠"订单异步处理"。
-> 覆盖面试高频考点：**为什么用 MQ、消息可靠性（Confirm / 手动 ACK / 持久化）、幂等、死信队列、延迟队列**。
+> 补 Java 岗「消息队列」短板的学习 demo，场景挂靠"订单异步处理"，覆盖**消息可靠性（Confirm / 手动 ACK / 持久化）、幂等、死信队列、延迟队列**。
 > 已在本机 `java -jar` 方式启动通过（2026-09-26）。
 
 ## 场景
 
 - 下单接口**同步秒回**，通知 / 统计走 **MQ 异步处理** —— 演示「削峰 + 解耦」。
 - 另一个接口演示「30 秒未支付自动取消」—— 延迟队列（TTL + 死信实现）。
-
-## 覆盖考点（面试映射）
-
-| 面试问题 | 实现位置 |
-|---|---|
-| 为什么用 MQ | `OrderController` 同步秒回 + `OrderNotifyConsumer` 异步通知 |
-| 生产端消息不丢 | `OrderProducer` 的 Publisher Confirm（CorrelationData Future 回调）|
-| 消费端消息不丢 | `OrderNotifyConsumer` 手动 ACK + application.yml 重试 3 次 |
-| 重复消费（幂等） | Redis 记录已处理 orderId，重复投递直接丢弃 |
-| 处理失败怎么办 | 重试 3 次耗尽 → 进死信队列（DLX），`DeadLetterConsumer` 人工补偿 |
-| 延迟队列 | `order.delay.queue` 队列级 TTL 30s + 死信交换机 |
 
 ## 拓扑
 
@@ -115,8 +103,7 @@ Invoke-RestMethod -Uri http://localhost:9090/order/delay -Method Post -ContentTy
 - 处理**成功后才打标记**：失败的消息不打标记，重试时能再次处理，不会被幂等误判成重复。
 - 生产上幂等完整做法：消息带全局唯一业务 ID + Redis/DB 去重 + 数据库唯一索引兜底。
 
-## 诚实边界（简历/面试口径）
+## 诚实边界
 
-- 这是**独立学习 demo**，**不是**集成到音乐后台里的 —— 别写成「音乐后台用了 RabbitMQ」。
-- 简历技能栏写 **「RabbitMQ（了解）」**；面试说「我补了一个 RabbitMQ 异步削峰 demo，验证了可靠性 / 幂等 / 死信」。
+- 这是**独立学习 demo**，**不是**集成到音乐后台里的。
 - 延迟队列用的是**队列级 TTL**（所有消息统一 30s）；要不同延迟需每消息 TTL 或 `rabbitmq_delayed_message_exchange` 插件。
