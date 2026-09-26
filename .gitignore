@@ -1,0 +1,17 @@
+# 编译产物
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 日志与系统文件
+*.log
+.DS_Store
+
+# 本地敏感配置（如有）
+application-local.yml
+application-local.properties
+.env

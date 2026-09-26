@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: rabbitmq-demo
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    # 生产者可靠性：Publisher Confirm + 消息退回（路由失败时回退）
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        # 消费者手动 ACK：处理成功才确认，失败不确认
+        acknowledge-mode: manual
+        # 消费失败自动重试 3 次（间隔 1s、2s 指数退避），耗尽后进死信队列
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000
+          multiplier: 2
+        # 重试耗尽后不重新入队（requeue），而是进死信队列（DLX）
+        default-requeue-rejected: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 9090
